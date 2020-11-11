@@ -3,7 +3,7 @@
 from os import getenv
 from flask import Flask, render_template, request
 from .models import DB, User
-from .twitter import add_or_update_user
+from .twitter import add_or_update_user, update_all_users
 from .predict import predict_user
 
 
@@ -43,7 +43,8 @@ def create_app():
 
         return render_template('prediction.html', title="Prediction", message=message)
 
-    @app.route('/user', methods=["POST"])
+    @app.route('/user', methods=["POST"])  # http://127.0.0.1:5000/user
+    # http://127.0.0.1:5000/user/<name>
     @app.route('/user/<name>', methods=["GET"])
     def user(name=None, message=''):
         name = name or request.values["user_name"]
@@ -62,7 +63,7 @@ def create_app():
 
     @app.route('/update')  # http://127.0.0.1:5000/update
     def update():
-        insert_example_users()
+        update_all_users()
         return render_template('base.html', title="Home", users=User.query.all())
 
     @app.route('/reset')  # http://127.0.0.1:5000/reset
@@ -70,10 +71,6 @@ def create_app():
         # we must create the database
         DB.drop_all()
         DB.create_all()
-        return render_template('base.html', title="Home")
+        return render_template('base.html', users=User.query.all(),
+                               title='All Tweets updated!')
     return app
-
-
-def insert_example_users():
-    add_or_update_user('elonmusk')
-    add_or_update_user('nasa')
